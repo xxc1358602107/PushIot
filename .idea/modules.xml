@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/PUSHIOT/xxcpush.iml" filepath="$PROJECT_DIR$/PUSHIOT/xxcpush.iml" />
       <module fileurl="file://$PROJECT_DIR$/XXCApp.iml" filepath="$PROJECT_DIR$/XXCApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/xxcpush/xxcpush.iml" filepath="$PROJECT_DIR$/xxcpush/xxcpush.iml" />
     </modules>
   </component>
 </project>
