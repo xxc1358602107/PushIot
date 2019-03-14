@@ -4,6 +4,9 @@ import android.app.Application;
 
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.init.PushIot;
+import com.app.xxcpush.utils.PushIotUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 
 /**
@@ -16,7 +19,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        PushIot.getInstance().initPushIot(this,"35fcc64616654e2bbeb2cac7532c25d7", "7f6c71f9c6dc42d8b11512c68936e6b5", new PushIotIm() {
+        PushIot.getInstance().initPushIot(this, "35fcc64616654e2bbeb2cac7532c25d7", "7f6c71f9c6dc42d8b11512c68936e6b5", new PushIotIm() {
             @Override
             public void initConnect() {
 
@@ -29,7 +32,7 @@ public class MyApplication extends Application {
 
             @Override
             public void listenMsg(Object msg) {
-
+                EventBus.getDefault().post(msg);
             }
 
             @Override

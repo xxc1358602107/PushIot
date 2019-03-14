@@ -7,9 +7,9 @@ import com.app.xxcpush.error.PushIotError;
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.event.PushIotMsgIm;
 import com.app.xxcpush.utils.GsonUtil;
-import com.google.gson.Gson;
 import com.orhanobut.hawk.Hawk;
 
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 
 import io.netty.buffer.ByteBuf;
@@ -35,25 +35,42 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
         this.iotIm.initConnect();
     }
 
+    /**
+     * 读取到消息
+     *
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         this.ctx = ctx;
-        readMsg(msg);
-        iotIm.listenMsg(msg);
+        iotIm.listenMsg(readMsg(msg));
     }
 
+    /**
+     * 连接异常
+     *
+     * @param ctx
+     * @param cause
+     * @throws Exception
+     */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        // 当出现异常就关闭连接
         this.ctx = ctx;
         cause.printStackTrace();
         ctx.close();
-        reconnection();
+//        reconnection();
         iotIm.exitConnect(cause);
     }
 
 
-    // 连接成功
+    /**
+     * 连接成功
+     *
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         this.ctx = ctx;
@@ -67,12 +84,23 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
     }
 
 
+    /**
+     * 读取消息
+     *
+     * @param msg
+     * @return
+     */
     public Object readMsg(Object msg) {
+        Object str = "";
         ByteBuf result = (ByteBuf) msg;
         byte[] result1 = new byte[result.readableBytes()];
-        result.readBytes(result1);
-        result.release();
-        return result;
+        try {
+            result.readBytes(result1);
+            str = new String(result1, "GBK");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return str;
     }
 
     /**

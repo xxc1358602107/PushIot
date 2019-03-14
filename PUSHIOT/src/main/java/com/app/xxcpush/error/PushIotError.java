@@ -22,12 +22,11 @@ public class PushIotError extends Throwable {
      */
     public PushIotError(String code, String message) {
         Log.e(PushIot.TAG, code + "--->" + message);
-//        try {
-//            throw new PushIotError(code, message);
-//        } catch (PushIotError pushIotError) {
-//            pushIotError.printStackTrace();
-//        } finally {
-//            Log.e(TAG, message + "--->" + code);
-//        }
+        try {
+            throw new Exception(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(PushIot.TAG, message + "--->" + code);
+        }
     }
 }

@@ -33,5 +33,6 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.2'
     //轻量级数据存储
     compile 'com.orhanobut:hawk:2.0.1'
+    //netty
     implementation files('libs/netty-all-4.1.0.Final.jar')
 }

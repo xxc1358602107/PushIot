@@ -1,6 +1,9 @@
 package com.app.xxcpush.utils;
 
 import android.text.TextUtils;
+import android.widget.Toast;
+
+import com.app.xxcpush.init.PushIot;
 
 import java.net.NetworkInterface;
 import java.util.Collections;
@@ -177,9 +180,21 @@ public class PushIotUtils {
 
     /**
      * 获取32位随机数
+     *
      * @return
      */
-    public static String get32UUID(){
+    public static String get32UUID() {
         return UUID.randomUUID().toString().trim().replaceAll("-", "");
+    }
+
+    /**
+     * Toast
+     *
+     * @param msg
+     */
+    public static void showToast(String msg) {
+        if (isEmpty(msg))
+            return;
+        Toast.makeText(PushIot.mContext, msg, Toast.LENGTH_SHORT).show();
     }
 }
