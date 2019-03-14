@@ -1,5 +1,10 @@
 package com.app.xxcpush.utils;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -17,6 +22,8 @@ import java.util.UUID;
  * Describe
  */
 public class PushIotUtils {
+
+    private static Toast mToast;
 
     /**
      * 字符串转换成十六进制字符串
@@ -188,13 +195,55 @@ public class PushIotUtils {
     }
 
     /**
+     * 判断当前线程是否是主线程
+     *
+     * @return true表示当前是在主线程中运行
+     */
+    public static boolean isUIThread() {
+        return Looper.getMainLooper() == Looper.myLooper();
+    }
+
+    private static Handler mHandler = new Handler(Looper.getMainLooper());
+
+    public static void runOnUIThread(Runnable run) {
+        if (isUIThread()) {
+            run.run();
+        } else {
+            mHandler.post(run);
+        }
+    }
+
+    /**
      * Toast
      *
      * @param msg
      */
-    public static void showToast(String msg) {
+    public static void showToast(final String msg) {
         if (isEmpty(msg))
             return;
-        Toast.makeText(PushIot.mContext, msg, Toast.LENGTH_SHORT).show();
+        runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mToast == null)
+                    mToast = Toast.makeText(PushIot.mContext, msg, Toast.LENGTH_SHORT);
+                mToast.setText(msg);
+                mToast.show();
+            }
+        });
+    }
+
+    /**
+     * 判断网络是否存在
+     *
+     * @return
+     */
+    public static boolean isNetworkConnected() {
+        ConnectivityManager mConnectivityManager = (ConnectivityManager) PushIot.mContext
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
+        if (mNetworkInfo != null) {
+            return mNetworkInfo.isAvailable();
+        }
+        return false;
     }
 }

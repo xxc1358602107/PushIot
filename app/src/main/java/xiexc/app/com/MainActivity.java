@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe
-    public void getMsg(Object msg) {
+    public void getMsg(String msg) {
         mTvMsg.append(msg.toString() + "\n");
         int offset = mTvMsg.getLineCount() * mTvMsg.getLineHeight();
         if (offset > mTvMsg.getHeight()) {

@@ -1,5 +1,7 @@
 package com.app.xxcpush.netty;
 
+import android.os.Handler;
+
 import com.app.xxcpush.api.HttpApis;
 import com.app.xxcpush.entity.MsgInfo;
 import com.app.xxcpush.entity.PushIotInfo;
@@ -7,6 +9,7 @@ import com.app.xxcpush.error.PushIotError;
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.event.PushIotMsgIm;
 import com.app.xxcpush.utils.GsonUtil;
+import com.app.xxcpush.utils.PushIotUtils;
 import com.orhanobut.hawk.Hawk;
 
 import java.io.UnsupportedEncodingException;
@@ -22,6 +25,7 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
     private ChannelHandlerContext ctx;
     private InetSocketAddress socketAddress;
     private PushIotIm iotIm;
+    private boolean isConnect = false;
 
 
     public static SimpleClientHandler getSimpleClientHandler() {
@@ -59,9 +63,10 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         this.ctx = ctx;
         cause.printStackTrace();
+        isConnect = false;
         ctx.close();
-//        reconnection();
         iotIm.exitConnect(cause);
+        reconnection();
     }
 
 
@@ -74,6 +79,7 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
         this.ctx = ctx;
+        isConnect = true;
         String appKey = Hawk.get("appKey", "");
         String masterSecret = Hawk.get("masterSecret", "");
         String alias = Hawk.get("alias", "");
@@ -136,20 +142,21 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
 
 
     /**
-     * 重新连接
+     * 重新连接3秒尝试一次
      */
     private void reconnection() {
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    new SimpleClient().connect(HttpApis.HOST, HttpApis.PORT, iotIm);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+//        new Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    if (PushIotUtils.isNetworkConnected() && !isConnect)
+//                        new SimpleClient().connect(HttpApis.HOST, HttpApis.PORT, iotIm);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }, 3000);
+
     }
 
 }
