@@ -96,7 +96,7 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
         byte[] result1 = new byte[result.readableBytes()];
         try {
             result.readBytes(result1);
-            str = new String(result1, "GBK");
+            str = new String(result1, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
