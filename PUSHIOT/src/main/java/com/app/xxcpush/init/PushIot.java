@@ -3,7 +3,8 @@ package com.app.xxcpush.init;
 import android.content.Context;
 
 import com.app.xxcpush.api.HttpApis;
-import com.app.xxcpush.entity.MsgInfo;
+import com.app.xxcpush.entity.PushMsgInfo;
+import com.app.xxcpush.error.PushInfoException;
 import com.app.xxcpush.error.PushIotError;
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.event.PushIotMsgIm;
@@ -47,22 +48,18 @@ public class PushIot {
      * 初始化连接服务器
      *
      * @param appKey
-     * @param masterSecret
      */
-    public void initPushIot(Context context, String appKey, String masterSecret, final PushIotIm iotIm) {
+    public void initPushIot(Context context, String appKey, final PushIotIm iotIm) {
         this.mContext = context;
         Hawk.init(context).build();
         gson = new Gson();
         Hawk.put("appKey", appKey);
-        Hawk.put("masterSecret", masterSecret);
         Hawk.put("alias", "");
         setLogDebug(true);
-        if (PushIotUtils.isEmpty(appKey) || PushIotUtils.isEmpty(masterSecret)) {
-            new PushIotError(PushIotError.KEY_SECRET_ERROR_CODE, "appKey或masterSecret为空");
+        if (PushIotUtils.isEmpty(appKey)) {
+            new PushInfoException(PushIotError.APP_KEY_ERROR);
             return;
         }
-
-
         //启动一个线程连接socket服务
         new Thread() {
             @Override
@@ -75,7 +72,6 @@ public class PushIot {
                 }
             }
         }.start();
-
     }
 
     /**
@@ -86,12 +82,10 @@ public class PushIot {
     public void setPushIotAlias(String alias) {
         this.alias = alias;
         if (PushIotUtils.isEmpty(alias)) {
-            new PushIotError(PushIotError.ALIAS_ERROR_CODE, "别名为空");
+            new PushInfoException(PushIotError.APP_ALIAS_ERROR);
             return;
         }
         Hawk.put("alias", alias);
-
-
     }
 
 
@@ -104,10 +98,10 @@ public class PushIot {
     public void sendMsg(String msg, PushIotMsgIm iotMsgIm) {
         SimpleClientHandler handler = SimpleClientHandler.getSimpleClientHandler();
         if (handler == null) {
-            new PushIotError(PushIotError.MSG_ERROR_CODE, "消息发送失败，连接异常001！");
+            new PushInfoException(PushIotError.APP_MSG_ERROR_1);
             return;
         }
-        SimpleClientHandler.getSimpleClientHandler().sendMsg(GsonUtil.strToJson(new MsgInfo(MsgInfo.US_MSG_CODE, MsgInfo.US_MSG_CODE_MG, msg)), iotMsgIm);
+        SimpleClientHandler.getSimpleClientHandler().sendMsg(GsonUtil.strToJson(new PushMsgInfo(PushMsgInfo.US_MSG_CODE, PushMsgInfo.US_MSG_CODE_MG, msg)), iotMsgIm);
     }
 
 
@@ -121,8 +115,8 @@ public class PushIot {
 
     //初始化上报数据
     private void initSerialSend() {
-        //数据实例：{"alias":"","appKey":"35fcc64616654e2bbeb2cac7532c25d7","masterSecret":"7f6c71f9c6dc42d8b11512c68936e6b5","msgId":"a5de2c46bc79404b9cd263db49914505"}
-//        SocketClient.writeBuff(PushIotUtils.str2Str(new Gson().toJson(new PushIotInfo(appKey, masterSecret, alias, PushIotUtils.get32UUID()))));
+        //数据实例：{"alias":"","appKey":"35fcc64616654e2bbeb2cac7532c25d7","msgId":"a5de2c46bc79404b9cd263db49914505"}
+//        SocketClient.writeBuff(PushIotUtils.str2Str(new Gson().toJson(new PushIotInfo(appKey,  alias, PushIotUtils.get32UUID()))));
     }
 
 

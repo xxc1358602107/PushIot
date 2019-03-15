@@ -1,15 +1,13 @@
 package com.app.xxcpush.netty;
 
-import android.os.Handler;
-
-import com.app.xxcpush.api.HttpApis;
-import com.app.xxcpush.entity.MsgInfo;
+import com.app.xxcpush.entity.GetMsgInfo;
 import com.app.xxcpush.entity.PushIotInfo;
+import com.app.xxcpush.entity.PushMsgInfo;
+import com.app.xxcpush.error.PushInfoException;
 import com.app.xxcpush.error.PushIotError;
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.event.PushIotMsgIm;
 import com.app.xxcpush.utils.GsonUtil;
-import com.app.xxcpush.utils.PushIotUtils;
 import com.orhanobut.hawk.Hawk;
 
 import java.io.UnsupportedEncodingException;
@@ -81,10 +79,9 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
         this.ctx = ctx;
         isConnect = true;
         String appKey = Hawk.get("appKey", "");
-        String masterSecret = Hawk.get("masterSecret", "");
         String alias = Hawk.get("alias", "");
         //连接成功发送初始化信息
-        String initMsg = GsonUtil.strToJson(new MsgInfo(MsgInfo.SY_MSG_CODE, MsgInfo.SY_MSG_CODE_MG, GsonUtil.strToJson(new PushIotInfo(appKey, masterSecret, alias))));
+        String initMsg = GsonUtil.strToJson(new PushMsgInfo(PushMsgInfo.SY_MSG_CODE, PushMsgInfo.SY_MSG_CODE_MG, GsonUtil.strToJson(new PushIotInfo(appKey, alias))));
         sendMsg(initMsg, null);
         iotIm.succeedConnect();
     }
@@ -97,12 +94,27 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     public Object readMsg(Object msg) {
-        Object str = "";
+        String str = "";
         ByteBuf result = (ByteBuf) msg;
         byte[] result1 = new byte[result.readableBytes()];
         try {
             result.readBytes(result1);
-            str = new String(result1, "UTF-8");
+            //TODO 本地Windows调试GBK
+            str = new String(result1, "GBK");
+//            str = new String(result1, "UTF-8");
+            //解析消息，有异常断开连接
+            GetMsgInfo info = GsonUtil.jsonToClass(str);
+            if (info != null) {
+                if (info.getType() == GetMsgInfo.US_PACKAGE_CODE) {
+                    ctx.close();
+                    new PushInfoException(PushIotError.APP_BREAK_ERROR);
+                    new PushInfoException(PushIotError.APP_BACKAGE_ERROR);
+                } else if (info.getType() == GetMsgInfo.US_KEY_CODE) {
+                    ctx.close();
+                    new PushInfoException(PushIotError.APP_BREAK_ERROR);
+                    new PushInfoException(PushIotError.APP_KEY_ERROR_1);
+                }
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -117,7 +129,7 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
      */
     public void sendMsg(String msg, PushIotMsgIm iotMsgIm) {
         if (ctx == null) {
-            new PushIotError(PushIotError.MSG_ERROR_CODE, "消息发送失败，连接异常002！");
+            new PushInfoException(PushIotError.APP_MSG_ERROR_2);
             return;
         }
         try {
@@ -131,12 +143,12 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
             if (iotMsgIm != null)
                 iotMsgIm.sendFinish(true);
         } catch (Exception e) {
-            if (iotMsgIm != null)
+            if (iotMsgIm != null) {
                 iotMsgIm.sendFinish(false);
-            if (iotMsgIm != null)
                 iotMsgIm.onError(e);
-            new PushIotError(PushIotError.MSG_ERROR_CODE, "消息发送失败，连接异常003！");
-            return;
+                new PushInfoException(PushIotError.APP_MSG_ERROR_3);
+                return;
+            }
         }
     }
 

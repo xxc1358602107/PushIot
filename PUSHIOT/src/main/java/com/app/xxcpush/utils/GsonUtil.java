@@ -1,5 +1,6 @@
 package com.app.xxcpush.utils;
 
+import com.app.xxcpush.entity.GetMsgInfo;
 import com.app.xxcpush.init.PushIot;
 
 /**
@@ -19,4 +20,16 @@ public class GsonUtil {
     public static String strToJson(Object object) {
         return PushIot.gson.toJson(object);
     }
+
+    /**
+     * 获取消息内容
+     *
+     * @param json
+     * @return
+     */
+    public static GetMsgInfo jsonToClass(String json) {
+        GetMsgInfo getMsgInfo = PushIot.gson.fromJson(json, GetMsgInfo.class);
+        return getMsgInfo;
+    }
+
 }

@@ -6,6 +6,7 @@ import android.content.Context;
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.init.PushIot;
 import com.app.xxcpush.utils.PushIotUtils;
+import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -28,8 +29,11 @@ public class MyApplication extends Application {
     }
 
 
+
+
+
     private void initPushSdk() {
-        PushIot.getInstance().initPushIot(this, "35fcc64616654e2bbeb2cac7532c25d7", "7f6c71f9c6dc42d8b11512c68936e6b5", new PushIotIm() {
+        PushIot.getInstance().initPushIot(this, "35fcc64616654e2bbeb2cac7532c25d7", new PushIotIm() {
             @Override
             public void initConnect() {
 
@@ -48,8 +52,8 @@ public class MyApplication extends Application {
             @Override
             public void exitConnect(Throwable cause) {
                 //重连机制
-                if (PushIotUtils.isNetworkConnected())
-                    initPushSdk();
+//                if (PushIotUtils.isNetworkConnected())
+//                    initPushSdk();
             }
         });
         PushIot.getInstance().setPushIotAlias("12");

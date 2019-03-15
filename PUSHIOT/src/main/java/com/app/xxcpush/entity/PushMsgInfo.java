@@ -13,7 +13,13 @@ import java.io.Serializable;
  * @Date 2019/3/11 0011 17:23
  * Describe
  */
-public class MsgInfo implements Serializable {
+public class PushMsgInfo implements Serializable {
+
+    /**
+     * 用户自定义消息
+     */
+    public static final int US_MSG_CODE = 0;
+    public static final String US_MSG_CODE_MG = "自定义消息";
 
     /**
      * 上线标识
@@ -21,11 +27,6 @@ public class MsgInfo implements Serializable {
     public static final int SY_MSG_CODE = 1;
     public static final String SY_MSG_CODE_MG = "上线标识";
 
-    /**
-     * 用户自定义消息
-     */
-    public static final int US_MSG_CODE = 2;
-    public static final String US_MSG_CODE_MG = "自定义消息";
 
     /**
      * 消息类别
@@ -71,7 +72,7 @@ public class MsgInfo implements Serializable {
     private String mac;
 
 
-    public MsgInfo(int type, String typeStr, String msgContent) {
+    public PushMsgInfo(int type, String typeStr, String msgContent) {
         this.type = type;
         this.typeStr = typeStr;
         this.msgContent = msgContent;
