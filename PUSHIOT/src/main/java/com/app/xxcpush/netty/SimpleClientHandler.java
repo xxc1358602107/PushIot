@@ -100,8 +100,8 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
         try {
             result.readBytes(result1);
             //TODO 本地Windows调试GBK
-            str = new String(result1, "GBK");
-//            str = new String(result1, "UTF-8");
+//            str = new String(result1, "GBK");
+            str = new String(result1, "UTF-8");
             //解析消息，有异常断开连接
             GetMsgInfo info = GsonUtil.jsonToClass(str);
             if (info != null) {
