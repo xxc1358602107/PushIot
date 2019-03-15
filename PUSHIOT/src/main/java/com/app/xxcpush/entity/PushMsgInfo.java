@@ -80,6 +80,6 @@ public class PushMsgInfo implements Serializable {
         this.msgTime = PushIotDateUtil.getTime();
         this.alias = Hawk.get("alias", "");
         this.imei = FacilityUtil.getIMEI();
-        this.mac = FacilityUtil.getMac();
+        this.mac = FacilityUtil.getMacAddress();
     }
 }

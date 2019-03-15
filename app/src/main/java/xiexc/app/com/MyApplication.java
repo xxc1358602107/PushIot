@@ -56,7 +56,7 @@ public class MyApplication extends Application {
 //                    initPushSdk();
             }
         });
-        PushIot.getInstance().setPushIotAlias("12");
+        PushIot.getInstance().setPushIotAlias("");
         PushIot.getInstance().setLogDebug(true);
     }
 }

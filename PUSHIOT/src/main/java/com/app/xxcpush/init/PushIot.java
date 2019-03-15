@@ -75,16 +75,12 @@ public class PushIot {
     }
 
     /**
-     * 设置别名(不能为空)
+     * 设置别名
      *
      * @param alias
      */
     public void setPushIotAlias(String alias) {
         this.alias = alias;
-        if (PushIotUtils.isEmpty(alias)) {
-            new PushInfoException(PushIotError.APP_ALIAS_ERROR);
-            return;
-        }
         Hawk.put("alias", alias);
     }
 

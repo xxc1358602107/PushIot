@@ -1,28 +1,22 @@
 package com.app.xxcpush.utils;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.app.xxcpush.init.PushIot;
 import com.orhanobut.hawk.Hawk;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @Copyright 广州市数商云网络科技有限公司
@@ -80,242 +74,82 @@ public class FacilityUtil {
      *
      * @return
      */
-    public static String getMac() {
-        if (PushIotUtils.isEmpty(mac)) {
-            String strMac = null;
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                strMac = getLocalMacAddressFromWifiInfo(PushIot.mContext);
-                return strMac;
-            } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N
-                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                strMac = getMacAddress();
-                return strMac;
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                if (!TextUtils.isEmpty(getMacAddress())) {
-                    strMac = getMacAddress();
-                    return strMac;
-                } else if (!TextUtils.isEmpty(getMachineHardwareAddress())) {
-                    strMac = getMachineHardwareAddress();
-                    return strMac;
-                } else {
-                    strMac = getLocalMacAddressFromBusybox();
-                    return strMac;
-                }
-            }
-
-            return "00:00:00:00:00:00";
-        } else {
-            return mac;
+    public static String getMacAddress() {
+        String mac = "02:00:00:00:00:00";
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            mac = getMacDefault(PushIot.mContext);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            mac = getMacFromHardware();
         }
-    }
-
-
-    /**
-     * 根据wifi信息获取本地mac
-     *
-     * @param context
-     * @return
-     */
-    public static String getLocalMacAddressFromWifiInfo(Context context) {
-        WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo winfo = wifi.getConnectionInfo();
-        String mac = winfo.getMacAddress();
         return mac;
     }
 
 
     /**
-     * android 7.0及以上 （2）扫描各个网络接口获取mac地址
-     *
-     */
-    /**
-     * 获取设备HardwareAddress地址
-     *
-     * @return
-     */
-    public static String getMachineHardwareAddress() {
-        Enumeration<NetworkInterface> interfaces = null;
-        try {
-            interfaces = NetworkInterface.getNetworkInterfaces();
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-        String hardWareAddress = null;
-        NetworkInterface iF = null;
-        if (interfaces == null) {
-            return null;
-        }
-        while (interfaces.hasMoreElements()) {
-            iF = interfaces.nextElement();
-            try {
-                hardWareAddress = bytesToString(iF.getHardwareAddress());
-                if (hardWareAddress != null)
-                    break;
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
-        }
-        return hardWareAddress;
-    }
-
-    /***
-     * byte转为String
-     *
-     * @param bytes
-     * @return
-     */
-    private static String bytesToString(byte[] bytes) {
-        if (bytes == null || bytes.length == 0) {
-            return null;
-        }
-        StringBuilder buf = new StringBuilder();
-        for (byte b : bytes) {
-            buf.append(String.format("%02X:", b));
-        }
-        if (buf.length() > 0) {
-            buf.deleteCharAt(buf.length() - 1);
-        }
-        return buf.toString();
-    }
-
-
-    /**
-     * android 6.0及以上、7.0以下 获取mac地址
-     *
-     * @return
-     */
-    public static String getMacAddress() {
-
-        // 如果是6.0以下，直接通过wifimanager获取
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            String macAddress0 = getMacAddress0(PushIot.mContext);
-            if (!TextUtils.isEmpty(macAddress0)) {
-                return macAddress0;
-            }
-        }
-        String str = "";
-        String macSerial = "";
-        try {
-            Process pp = Runtime.getRuntime().exec(
-                    "cat /sys/class/net/wlan0/address");
-            InputStreamReader ir = new InputStreamReader(pp.getInputStream());
-            LineNumberReader input = new LineNumberReader(ir);
-            for (; null != str; ) {
-                str = input.readLine();
-                if (str != null) {
-                    macSerial = str.trim();// 去空格
-                    break;
-                }
-            }
-        } catch (Exception ex) {
-            Log.e("----->" + "NetInfoManager", "getMacAddress:" + ex.toString());
-        }
-        if (macSerial == null || "".equals(macSerial)) {
-            try {
-                return loadFileAsString("/sys/class/net/eth0/address")
-                        .toUpperCase().substring(0, 17);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.e("----->" + "NetInfoManager",
-                        "getMacAddress:" + e.toString());
-            }
-
-        }
-        return macSerial;
-    }
-
-    private static String getMacAddress0(Context context) {
-        if (isAccessWifiStateAuthorized(context)) {
-            WifiManager wifiMgr = (WifiManager) context
-                    .getSystemService(Context.WIFI_SERVICE);
-            WifiInfo wifiInfo = null;
-            try {
-                wifiInfo = wifiMgr.getConnectionInfo();
-                return wifiInfo.getMacAddress();
-            } catch (Exception e) {
-                Log.e("----->" + "NetInfoManager",
-                        "getMacAddress0:" + e.toString());
-            }
-
-        }
-        return "";
-
-    }
-
-    /**
-     * Check whether accessing wifi state is permitted
+     * Android  6.0 之前（不包括6.0）
+     * 必须的权限  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
      *
      * @param context
      * @return
      */
-    private static boolean isAccessWifiStateAuthorized(Context context) {
-        if (PackageManager.PERMISSION_GRANTED == context
-                .checkCallingOrSelfPermission("android.permission.ACCESS_WIFI_STATE")) {
-            return true;
-        } else
-            return false;
-    }
-
-    private static String loadFileAsString(String fileName) throws Exception {
-        FileReader reader = new FileReader(fileName);
-        String text = loadReaderAsString(reader);
-        reader.close();
-        return text;
-    }
-
-    private static String loadReaderAsString(Reader reader) throws Exception {
-        StringBuilder builder = new StringBuilder();
-        char[] buffer = new char[4096];
-        int readLength = reader.read(buffer);
-        while (readLength >= 0) {
-            builder.append(buffer, 0, readLength);
-            readLength = reader.read(buffer);
+    private static String getMacDefault(Context context) {
+        String mac = "02:00:00:00:00:00";
+        if (context == null) {
+            return mac;
         }
-        return builder.toString();
+
+        WifiManager wifi = (WifiManager) context.getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
+        if (wifi == null) {
+            return mac;
+        }
+        WifiInfo info = null;
+        try {
+            info = wifi.getConnectionInfo();
+        } catch (Exception e) {
+        }
+        if (info == null) {
+            return null;
+        }
+        mac = info.getMacAddress();
+        if (!TextUtils.isEmpty(mac)) {
+            mac = mac.toUpperCase(Locale.ENGLISH);
+        }
+        return mac;
     }
 
 
     /**
-     * 根据busybox获取本地Mac
+     * 遍历循环所有的网络接口，找到接口是 wlan0
+     * 必须的权限 <uses-permission android:name="android.permission.INTERNET" />
      *
      * @return
      */
-    public static String getLocalMacAddressFromBusybox() {
-        String result = "";
-        String Mac = "";
-        result = callCmd("busybox ifconfig", "HWaddr");
-        // 如果返回的result == null，则说明网络不可取
-        if (result == null) {
-            return "网络异常";
-        }
-        // 对该行数据进行解析
-        // 例如：eth0 Link encap:Ethernet HWaddr 00:16:E8:3E:DF:67
-        if (result.length() > 0 && result.contains("HWaddr") == true) {
-            Mac = result.substring(result.indexOf("HWaddr") + 6,
-                    result.length() - 1);
-            result = Mac;
-        }
-        return result;
-    }
-
-    private static String callCmd(String cmd, String filter) {
-        String result = "";
-        String line = "";
+    private static String getMacFromHardware() {
         try {
-            Process proc = Runtime.getRuntime().exec(cmd);
-            InputStreamReader is = new InputStreamReader(proc.getInputStream());
-            BufferedReader br = new BufferedReader(is);
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all) {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
 
-            while ((line = br.readLine()) != null
-                    && line.contains(filter) == false) {
-                result += line;
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes == null) {
+                    return "";
+                }
+
+                StringBuilder res1 = new StringBuilder();
+                for (byte b : macBytes) {
+                    res1.append(String.format("%02X:", b));
+                }
+
+                if (res1.length() > 0) {
+                    res1.deleteCharAt(res1.length() - 1);
+                }
+                return res1.toString();
             }
-
-            result = line;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
+        return "02:00:00:00:00:00";
     }
 
 

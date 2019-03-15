@@ -17,7 +17,7 @@ public class PushIotDateUtil {
 	private final static SimpleDateFormat sdfYear = new SimpleDateFormat("yyyy");
 	private final static SimpleDateFormat sdfDay = new SimpleDateFormat("yyyy-MM-dd");
 	private final static SimpleDateFormat sdfDays = new SimpleDateFormat("yyyyMMdd");
-	private final static SimpleDateFormat sdfTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private final static SimpleDateFormat sdfTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	private final static SimpleDateFormat sdfTimes = new SimpleDateFormat("yyyyMMddHHmmss");
 
 	/**
