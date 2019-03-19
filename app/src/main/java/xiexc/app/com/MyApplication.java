@@ -6,7 +6,7 @@ import android.content.Context;
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.init.PushIot;
 import com.app.xxcpush.utils.PushIotUtils;
-import com.google.gson.Gson;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -29,16 +29,16 @@ public class MyApplication extends Application {
     }
 
 
-
-
-
     private void initPushSdk() {
+
         PushIot.getInstance().initPushIot(this, "35fcc64616654e2bbeb2cac7532c25d7", new PushIotIm() {
+
+            //初始化SDK开始连接
             @Override
             public void initConnect() {
-
             }
 
+            //连接成功
             @Override
             public void succeedConnect() {
                 PushIotUtils.showToast("连接成功");
@@ -49,14 +49,20 @@ public class MyApplication extends Application {
                 EventBus.getDefault().post(msg.toString());
             }
 
+            //连接断开
             @Override
             public void exitConnect(Throwable cause) {
                 //重连机制
-//                if (PushIotUtils.isNetworkConnected())
-//                    initPushSdk();
+
+            }
+
+            //连接超时
+            @Override
+            public void timeoutConnect() {
+
             }
         });
-        PushIot.getInstance().setPushIotAlias("");
-        PushIot.getInstance().setLogDebug(true);
+        PushIot.getInstance().setPushIotAlias("xxc1");//设置别名
+        PushIot.getInstance().setLogDebug(true);//设置是否显示日志
     }
 }

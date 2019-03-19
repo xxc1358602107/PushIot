@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import es.dmoral.toasty.MyToast;
+
 /**
  * @Copyright 广州市数商云网络科技有限公司
  * @Author XXC
@@ -232,6 +234,80 @@ public class PushIotUtils {
         });
     }
 
+
+    /**
+     * 成功 绿色
+     *
+     * @param msg
+     */
+    public static void showSuccessToast(final String msg) {
+        runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                MyToast.success(msg);
+            }
+        });
+    }
+
+    /**
+     * 失败 红色
+     *
+     * @param msg
+     */
+    public static void showErrorToast(final String msg) {
+        runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                MyToast.error(msg);
+            }
+        });
+    }
+
+
+    /**
+     * 普通 蓝色
+     *
+     * @param msg
+     */
+    public static void showInfoToast(final String msg) {
+        runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                MyToast.info(msg);
+            }
+        });
+    }
+
+
+    /**
+     * 警告 黄色
+     *
+     * @param msg
+     */
+    public static void showWarnToast(final String msg) {
+        runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                MyToast.warn(msg);
+            }
+        });
+    }
+
+    /**
+     * 灰色 提示
+     *
+     * @param msg
+     */
+    public static void showShowToast(final String msg) {
+        runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                MyToast.show(msg);
+            }
+        });
+    }
+
+
     /**
      * 判断网络是否存在
      *
@@ -245,5 +321,24 @@ public class PushIotUtils {
             return mNetworkInfo.isAvailable();
         }
         return false;
+    }
+
+
+    /**
+     * 短时间内是否重复执行
+     *
+     * @return
+     */
+    private static final int MIN_DELAY_TIME = 1000;  // 两次间隔不能少于1000ms
+    private static long lastClickTime;
+
+    public static boolean isFast() {
+        boolean flag = true;
+        long currentClickTime = System.currentTimeMillis();
+        if ((currentClickTime - lastClickTime) >= MIN_DELAY_TIME) {
+            flag = false;
+        }
+        lastClickTime = currentClickTime;
+        return flag;
     }
 }

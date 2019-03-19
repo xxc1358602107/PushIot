@@ -1,5 +1,8 @@
 package com.app.xxcpush.netty;
 
+import android.os.Handler;
+import android.os.Message;
+
 import com.app.xxcpush.entity.GetMsgInfo;
 import com.app.xxcpush.entity.PushIotInfo;
 import com.app.xxcpush.entity.PushMsgInfo;
@@ -7,8 +10,10 @@ import com.app.xxcpush.error.PushInfoException;
 import com.app.xxcpush.error.PushIotError;
 import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.event.PushIotMsgIm;
+import com.app.xxcpush.init.PushIot;
 import com.app.xxcpush.utils.GsonUtil;
 import com.orhanobut.hawk.Hawk;
+import com.orhanobut.logger.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
@@ -25,17 +30,37 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
     private PushIotIm iotIm;
     private boolean isConnect = false;
 
+//    /**
+//     * 超时计时
+//     */
+//    Handler timeHandler = new Handler() {
+//        @Override
+//        public void handleMessage(Message msg) {
+//            super.handleMessage(msg);
+//            if (!isConnect) {
+//                iotIm.timeoutConnect();
+//                if (ctx != null)
+//                    ctx.close();
+//                Logger.v("SDK连接超时...开始自动尝试连接...");
+//                PushIot.getInstance().sdkInit();//尝试重连SDK
+//            }
+//        }
+//    };
 
     public static SimpleClientHandler getSimpleClientHandler() {
         return handler;
     }
 
-    public SimpleClientHandler(InetSocketAddress socketAddress, PushIotIm iotIm) {
+    public SimpleClientHandler(InetSocketAddress socketAddress, final PushIotIm iotIm) {
         handler = this;
         this.socketAddress = socketAddress;
         this.iotIm = iotIm;
         this.iotIm.initConnect();
+        isConnect = false;
+        Logger.v("SDK初始化...");
+//        timeHandler.sendEmptyMessageDelayed(0, 3000);
     }
+
 
     /**
      * 读取到消息
@@ -63,8 +88,10 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
         isConnect = false;
         ctx.close();
+        isConnect = false;
         iotIm.exitConnect(cause);
-        reconnection();
+        Logger.e("SDK连接异常...");
+        PushIot.getInstance().sdkInit();
     }
 
 
@@ -83,7 +110,9 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
         //连接成功发送初始化信息
         String initMsg = GsonUtil.strToJson(new PushMsgInfo(PushMsgInfo.SY_MSG_CODE, PushMsgInfo.SY_MSG_CODE_MG, GsonUtil.strToJson(new PushIotInfo(appKey, alias))));
         sendMsg(initMsg, null);
+        isConnect = true;
         iotIm.succeedConnect();
+        Logger.i("SDK连接成功...");
     }
 
 
@@ -150,25 +179,6 @@ public class SimpleClientHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
         }
-    }
-
-
-    /**
-     * 重新连接3秒尝试一次
-     */
-    private void reconnection() {
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    if (PushIotUtils.isNetworkConnected() && !isConnect)
-//                        new SimpleClient().connect(HttpApis.HOST, HttpApis.PORT, iotIm);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }, 3000);
-
     }
 
 }
