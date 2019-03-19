@@ -14,7 +14,7 @@ import com.app.xxcpush.init.PushIot;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-
+//测试
 public class MainActivity extends AppCompatActivity {
 
     private EditText mEtMsg = null;
