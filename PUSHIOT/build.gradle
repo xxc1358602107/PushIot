@@ -35,4 +35,6 @@ dependencies {
     compile 'com.orhanobut:hawk:2.0.1'
     //netty
     implementation files('libs/netty-all-4.1.0.Final.jar')
+    //Toast
+    compile 'com.github.hss01248:Toasty:2.0.1'
 }

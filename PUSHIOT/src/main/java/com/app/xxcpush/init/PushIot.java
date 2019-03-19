@@ -1,6 +1,9 @@
 package com.app.xxcpush.init;
 
 import android.content.Context;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 
 import com.app.xxcpush.api.HttpApis;
 import com.app.xxcpush.entity.PushMsgInfo;
@@ -10,6 +13,7 @@ import com.app.xxcpush.event.PushIotIm;
 import com.app.xxcpush.event.PushIotMsgIm;
 import com.app.xxcpush.netty.SimpleClient;
 import com.app.xxcpush.netty.SimpleClientHandler;
+import com.app.xxcpush.receiver.NetworkReceiver;
 import com.app.xxcpush.utils.GsonUtil;
 import com.app.xxcpush.utils.PushIotUtils;
 import com.google.gson.Gson;
@@ -17,19 +21,23 @@ import com.orhanobut.hawk.Hawk;
 import com.orhanobut.logger.LogLevel;
 import com.orhanobut.logger.Logger;
 
+import es.dmoral.toasty.MyToast;
+
 /**
  * @Copyright 广州市数商云网络科技有限公司
  * @Author XXC
  * @Date 2019/3/8 0008 17:39
  * Describe
  */
-public class PushIot {
+public class PushIot implements NetworkReceiver.NetEvent {
 
     public static String TAG = "PushIot";
     private static PushIot pushIot;
     private String alias = null;
     public static Gson gson;
+    public static NetworkReceiver.NetEvent event;
     public static Context mContext;
+    private static PushIotIm iotIm;
 
 
     /**
@@ -51,27 +59,54 @@ public class PushIot {
      */
     public void initPushIot(Context context, String appKey, final PushIotIm iotIm) {
         this.mContext = context;
+        this.iotIm = iotIm;
         Hawk.init(context).build();
         gson = new Gson();
         Hawk.put("appKey", appKey);
         Hawk.put("alias", "");
         setLogDebug(true);
+        MyToast.init(PushIot.mContext, false, true);
         if (PushIotUtils.isEmpty(appKey)) {
             new PushInfoException(PushIotError.APP_KEY_ERROR);
             return;
         }
-        //启动一个线程连接socket服务
+        event = this;
+        receiverInit();
+
+    }
+
+    /**
+     * SDK初始化连接
+     */
+    public synchronized void sdkInit() {
+        if (!PushIotUtils.isNetworkConnected()) {
+            Logger.e("当前网络无连接，请检查设备网络连接状态...");
+            return;
+        }
         new Thread() {
             @Override
             public void run() {
                 super.run();
                 try {
+                    //启动一个线程连接SDK服务
                     new SimpleClient().connect(HttpApis.HOST, HttpApis.PORT, iotIm);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }.start();
+    }
+
+
+    /**
+     * 网络状态监听广播注册
+     */
+    private void receiverInit() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        PushIot.mContext.registerReceiver(new NetworkReceiver(), filter);
     }
 
     /**
@@ -126,5 +161,18 @@ public class PushIot {
                 .methodCount(3)
                 .logLevel(isDebug ? LogLevel.FULL : LogLevel.NONE)
                 .methodOffset(2);
+    }
+
+
+    /**
+     * 网络状态发生变化
+     *
+     * @param
+     */
+    @Override
+    public void onNetChange() {
+        if (PushIotUtils.isFast())
+            return;
+        sdkInit();
     }
 }

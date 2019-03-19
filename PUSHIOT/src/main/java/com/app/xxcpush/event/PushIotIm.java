@@ -20,6 +20,12 @@ public interface PushIotIm {
      */
     void succeedConnect();
 
+
+    /**
+     * 连接超时
+     */
+    void timeoutConnect();
+
     /**
      * 消息接收监听
      *
